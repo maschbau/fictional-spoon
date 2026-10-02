@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sebastian, Felix, Dustin & Daniel – Japan & Bangkok 2026</title>
+  
+  <!-- External Fonts & Leaflet Map Library -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    /* ---------- 1. Design-Variablen (Farben, Radien, Schatten) ---------- */
+    :root {
+      --bg: #f4f7f4;      /* Seitenhintergrund */
+      --card: #ffffff;    /* Boxen, Karten */
+      --hover: #f0fdf4;   /* Hover-Hintergrund */
+      --line: #cbd5e1;    /* Rahmen, Trennlinien */
+      --ink: #0f172a;     /* Überschriften, wichtiger Text */
+      --text: #334155;    /* Fließtext */
+      --mute: #64748b;    /* Nebentext */
+      --p1: #15803d;      /* Hauptgrün (Bangkok / Phase 1) */
+      --p2: #7c3aed;      /* Akzent Lila (Japan / Phase 2) */
+      --accent: #0d9488;  /* Türkis (Fokus, Inseln) */
+      --danger: #dc2626;
+      --radius: 12px;
+      --shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+      --tab-count: 3;
+    }
+
+    /* ---------- 2. Reset & Grundlayout ---------- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.5; padding: 32px 24px 48px;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .wrap { max-width: 1280px; margin: 0 auto; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    /* ---------- 3. Kopfbereich (Titel, Countdown, Statistik-Kacheln) ---------- */
+    header {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end;
+      gap: 32px; border-bottom: 3px solid var(--p1);
+      padding: 0 2px 20px; margin-bottom: 24px;
+    }
+    h1 { font-size: clamp(1.65rem, 2.5vw, 2.2rem); line-height: 1.15; font-weight: 800; letter-spacing: -.025em; color: var(--ink); }
+    header p { font-size: .92rem; font-weight: 600; color: var(--mute); margin-top: 6px; }
+    #countdown {
+      display: inline-block; margin-top: 10px; background: #dcfce7; border: 1px solid #86efac;
+      color: var(--p1); padding: 5px 14px; border-radius: 999px; font-size: .82rem; font-weight: 800;
+    }
+    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; width: 680px; max-width: 100%; }
+    .stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-size: .76rem; font-weight: 600; color: var(--ink); box-shadow: var(--shadow); }
+    .stat b { display: block; font-weight: 800; margin-top: 2px; font-size: .82rem; }
+
+    /* ---------- 4. Navigation: Tabs, Bereichs-Umschalter, Buttons ---------- */
+    .tabs { display: grid; grid-template-columns: repeat(var(--tab-count, 3), 1fr); gap: 12px; margin-bottom: 24px; }
+    .sub-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab, .ph, .f, .btn-action {
+      background: var(--card); border: 1px solid var(--line); color: var(--text);
+      border-radius: 8px; font-weight: 700;
+    }
+    .tab { min-height: 44px; padding: 10px 12px; font-size: .88rem; white-space: nowrap; text-align: center; transition: background .15s, border-color .15s, color .15s, transform .15s; }
+    .tab.on, .tab:hover, .f.on, .f:hover { background: var(--p1); border-color: var(--p1); color: #fff; }
+    .tab:hover { transform: translateY(-1px); }
+    .pane { display: none; }
+    .pane.on { display: block; }
+
+    .switch { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 18px; }
+    .ph { padding: 12px 16px; border-width: 2px; text-align: center; color: var(--ink); font-weight: 800; font-size: .9rem; line-height: 1.35; transition: background .15s, border-color .15s, transform .15s; }
+    .ph small { display: block; font-size: .73rem; line-height: 1.35; font-weight: 600; opacity: .85; margin-top: 3px; }
+    .ph:hover { background: var(--hover); transform: translateY(-1px); }
+    .ph.on { background: var(--p1); border-color: var(--p1); color: #fff; }
+    .ph.two.on { background: var(--p2); border-color: var(--p2); }
+
+    /* ---------- 5. Boxen & Karte ---------- */
+    .box { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+    .box.map { border-top: 4px solid var(--p1); padding-top: 16px; }
+    .box.full { position: fixed; inset: 0; z-index: 9999; border-radius: 0; margin: 0; overflow: auto; background: var(--bg); padding: 20px; }
+    .mh { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .mh h2, .box h3, .box h4 { font-size: 1.1rem; line-height: 1.25; font-weight: 800; color: var(--ink); }
+    .mh button { flex: 0 0 auto; font-size: .8rem; font-weight: 700; color: var(--p1); background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 7px 12px; }
+    .mh button:hover { background: var(--hover); border-color: #86efac; }
+    .note { font-size: .8rem; color: var(--mute); }
+
+    #map { height: 540px; width: 100%; border-radius: 8px; border: 1px solid var(--line); overflow: hidden; position: relative; }
+    .box.full #map { height: calc(100vh - 86px); }
+    .nm { border: 2px solid #fff; border-radius: 50%; color: #fff; font-weight: 800; font-size: 11px; display: flex !important; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,.3); }
+    .nm.p1 { background: var(--p1); }
+    .nm.p2 { background: var(--p2); }
+
+    /* Map Legend Overlay */
+    .map-legend {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: var(--ink);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      line-height: 1.6;
+    }
+    .map-legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .map-legend-item:last-child { margin-bottom: 0; }
+    .line-indicator { width: 24px; height: 3px; display: inline-block; border-radius: 2px; }
+    .line-flight { border-top: 2px dashed #dc2626; height: 0px; }
+    .line-shinkansen { background: var(--p2); }
+
+    /* ---------- 6. Suche & Filter ---------- */
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+    #q { flex: 1 1 300px; min-width: 240px; background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 9px 13px; font-size: .84rem; color: var(--ink); }
+    #q:focus { border-color: #86efac; outline: 3px solid rgba(13,148,136,.15); }
+    .f { padding: 7px 12px; font-size: .76rem; font-weight: 700; }
+
+    /* ---------- 7. Tabellen, Badges, Pills ---------- */
+    .tw { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; font-size: .83rem; text-align: left; }
+    th { position: sticky; top: 0; z-index: 1; background: #e2e8f0; color: var(--ink); font-size: .72rem; font-weight: 800; padding: 10px 12px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; color: var(--ink); }
+    tr.row { cursor: pointer; }
+    tr.row:hover td { background: var(--hover); }
+    tr.row:last-child td { border-bottom: 0; }
+
+    .dn { display: inline-block; background: var(--p1); color: #fff; font-weight: 800; font-size: .72rem; border-radius: 5px; padding: 2px 7px; white-space: nowrap; }
+    .two-c .dn { background: var(--p2); }
+    .dt { font-size: .71rem; color: var(--mute); font-weight: 600; margin-top: 3px; }
+    .tt { font-weight: 700; }
+    
+    /* Region Tags */
+    .rg { display: inline-block; font-size: .68rem; font-weight: 700; border-radius: 4px; padding: 2px 6px; white-space: nowrap; margin-bottom: 2px; }
+    .tag-bangkok { background: #f3e8ff; color: #6b21a8; }
+    .tag-tokio { background: #dcfce7; color: #15803d; }
+    .tag-nikko { background: #e0f2fe; color: #0284c7; }
+    .tag-nagano { background: #ccfbf1; color: #0d9488; }
+    .tag-takayama { background: #fef3c7; color: #b45309; }
+    .tag-kanazawa { background: #fce7f3; color: #be185d; }
+    .tag-kyoto { background: #fef3c7; color: #b45309; }
+    .tag-osaka { background: #ffe4e6; color: #e11d48; }
+    .tag-hiroshima { background: #fee2e2; color: #dc2626; }
+
+    /* Mobile Cards */
+    .cards { display: none; flex-direction: column; gap: 8px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; cursor: pointer; font-size: .8rem; box-shadow: var(--shadow); }
+    .card:hover { background: var(--hover); }
+    .card .tt { font-size: .85rem; }
+
+    /* ---------- 8. Listen (Flüge, Hinweise) ---------- */
+    ul.fl-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    ul.fl-list li { background: #f8fafc; border: 1px solid var(--line); border-left: 4px solid var(--p1); border-radius: 8px; padding: 10px 14px; }
+    .fl-date { display: block; font-size: .75rem; font-weight: 800; color: var(--p1); margin-bottom: 2px; }
+    .fl-route { font-size: .9rem; font-weight: 700; color: var(--ink); }
+    .fl-details { display: block; font-size: .8rem; color: var(--text); }
+    
+    /* ---------- 11. Mobil (bis 860 px) ---------- */
+    @media (max-width: 860px) {
+      body { padding: 12px 8px 22px; }
+      header { grid-template-columns: 1fr; gap: 9px; padding: 0 1px 11px; margin-bottom: 12px; }
+      h1 { font-size: 1.38rem; }
+      header p { font-size: .74rem; line-height: 1.35; margin-top: 4px; }
+      #countdown { font-size: .7rem; padding: 3px 8px; margin-top: 6px; }
+      .stats { width: 100%; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+      .stat { padding: 6px 6px; text-align: center; font-size: .68rem; border-radius: 7px; }
+      .stat b { font-size: .75rem; }
+      .tabs { gap: 5px; margin-bottom: 12px; }
+      .tab { min-height: 36px; padding: 6px 4px; font-size: .69rem; white-space: normal; line-height: 1.2; }
+      .box { padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+      .box.map { padding-top: 8px; }
+      .mh { margin-bottom: 8px; }
+      .mh h2, .box h3 { font-size: .92rem; }
+      .mh button { padding: 5px 7px; font-size: .67rem; }
+      #map { height: 380px; }
+      .switch { gap: 5px; margin-bottom: 9px; }
+      .ph { padding: 7px 5px; font-size: .73rem; border-radius: 7px; }
+      .ph small { font-size: .58rem; line-height: 1.25; margin-top: 2px; }
+      .controls { gap: 5px; margin-bottom: 8px; }
+      #q { flex: 1 1 100%; min-width: 0; padding: 7px 9px; font-size: .75rem; }
+      .f { padding: 5px 7px; font-size: .67rem; }
+      #route .tw { display: none; }
+      .cards { display: flex; }
+    }
+    @media (max-width: 420px) {
+      body { padding: 9px 6px 18px; }
+      h1 { font-size: 1.22rem; }
+      header p { font-size: .68rem; }
+      #countdown { font-size: .65rem; }
+      .stat { padding: 4px 2px; font-size: .6rem; }
+      .tab { min-height: 34px; font-size: .64rem; padding: 6px 2px; }
+      #map { height: 335px; }
+      .ph { font-size: .69rem; padding: 6px 4px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    
+    <!-- KOPFBEREICH -->
+    <header>
+      <div>
+        <h1>🌸 Bangkok & Japan 2026</h1>
+        <p>22.10.2026 – 15.11.2026 • Abflug München (MUC)</p>
+        <span id="countdown">Lade Countdown...</span>
+      </div>
+      <div class="stats">
+        <div class="stat">Reisedauer<b>25 Tage</b></div>
+        <div class="stat">Stopps<b>Bangkok & Japan</b></div>
+        <div class="stat">Gruppe<b>Sebastian · Felix · Dustin · Daniel</b></div>
+        <div class="stat">Status<b>Flüge & Hotels teilweise bestätigt</b></div>
+      </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="tabs">
+      <button class="tab on" onclick="switchTab('route', this)">📍 Reiseplan & Karte</button>
+      <button class="tab" onclick="switchTab('flights', this)">✈️ Flüge & Logistik</button>
+      <button class="tab" onclick="switchTab('info', this)">ℹ️ Infos & Tipps</button>
+    </nav>
+
+    <!-- TAB 1: REISEPLAN & KARTE -->
+    <div id="route" class="pane on">
+      
+      <!-- Bereichs-Umschalter -->
+      <div class="switch">
+        <button class="ph" id="btn-p1" onclick="filterPhase(1)">
+          Teil 1: Bangkok
+          <small>23.10. – 28.10.2026 · 5 Nächte</small>
+        </button>
+        <button class="ph two" id="btn-p2" onclick="filterPhase(2)">
+          Teil 2: Japan Exploration
+          <small>28.10. – 14.11.2026 · 17 Nächte</small>
+        </button>
+      </div>
+
+      <!-- Interaktive Karte -->
+      <div class="box map" id="map-box">
+        <div class="mh">
+          <h2>🗺️ Route & Interaktive Karte</h2>
+          <button onclick="toggleMapFull()">Vollbild ⛶</button>
+        </div>
+        <div id="map"></div>
+      </div>
+
+      <!-- Suche & Filter -->
+      <div class="controls">
+        <input type="text" id="q" placeholder="Stationen, Aktivitäten oder Orte suchen..." oninput="filterRoute()">
+        <button class="f on" onclick="setFilter('all', this)">Alle Orte</button>
+        <button class="f" onclick="setFilter('Bangkok', this)">Bangkok</button>
+        <button class="f" onclick="setFilter('Tokio', this)">Tokio</button>
+        <button class="f" onclick="setFilter('Kyoto', this)">Kyoto</button>
+        <button class="f" onclick="setFilter('Osaka', this)">Osaka</button>
+        <button class="f" onclick="setFilter('Hakone/Fuji', this)">Hakone/Fuji</button>
+        <button class="f" onclick="setFilter('Hiroshima', this)">Hiroshima</button>
+      </div>
+
+      <!-- Full Desktop-Tabelle (Jeder Tag 1 bis 24) -->
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Tag</th>
+              <th>Datum</th>
+              <th>Region</th>
+              <th>Station / Hauptziel</th>
+              <th>Highlights & Aktivitäten</th>
+            </tr>
+          </thead>
+          <tbody id="route-table-body">
+            <!-- Dynamisch via JavaScript befüllt -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Cards (Wird bei <=860px eingeblendet) -->
+      <div class="cards" id="route-cards">
+        <!-- Dynamisch via JavaScript befüllt -->
+      </div>
+
+    </div>
+
+    <!-- TAB 2: FLÜGE & LOGISTIK -->
+    <div id="flights" class="pane">
+      <div class="box">
+        <h3>✈️ Flug- & Reiselogistik</h3>
+        <p class="note" style="margin-bottom:16px">Alle Zeiten sind Ortszeiten. Rückflug-Buchung im Screenshot: Sebastian; Buchungen der übrigen Reisenden bitte abgleichen.</p><ul class="fl-list"><li><span class="fl-date">22.–23.10.2026</span><div class="fl-route">München (MUC) → Sharjah (SHJ)</div><span class="fl-details">Air Arabia G9241 · 22.10. 22:45 → 23.10. 06:50 · Terminal 1 · Economy · 6 Std. 05 Min.</span></li><li><span class="fl-date">23.10.2026</span><div class="fl-route">Sharjah (SHJ) → Bangkok (BKK)</div><span class="fl-details">Air Arabia G9816 · 07:50 → 17:25 · Economy · 6 Std. 35 Min. · Umstieg in SHJ: 1 Stunde</span></li><li><span class="fl-date">28.10.2026</span><div class="fl-route">Bangkok → Tokio · Flugdetails offen</div><span class="fl-details">Datum laut Aufenthaltsübersicht. Flugnummer, Abflugzeit und Flughäfen sind in den Screenshots nicht enthalten.</span></li><li><span class="fl-date">14.11.2026</span><div class="fl-route">Tokio Narita (NRT) → Shanghai (PVG)</div><span class="fl-details">Air China CA920 · 19:30 → 22:15 · Umstieg: 4 Std. 15 Min. über Mitternacht</span></li><li><span class="fl-date">15.11.2026</span><div class="fl-route">Shanghai (PVG) → München (MUC)</div><span class="fl-details">Air China CA827 · 02:30 → 07:45 · Im Screenshot steht ein Hinweis auf Flugänderungen; aktuelle Buchung vor Abflug prüfen.</span></li></ul>
+      </div>
+
+      <div class="box">
+        <h3>🚆 Transport vor Ort (Japan Rail & Öffis)</h3>
+        <p style="font-size:0.85rem; margin-top:8px; line-height:1.6;">
+          Geplante Route: <b>Tokio → Hakone/Fuji → Kyoto → Osaka → Hiroshima → Tokio</b>. Bahn- und gegebenenfalls Busverbindungen hängen vom genauen Aufenthalt in Hakone/Fuji ab; Tickets sind hier noch nicht als gebucht bestätigt. Die Karte zeigt schematische Verbindungen, keine exakten Schienenstrecken.
+        </p>
+      </div>
+
+<div class="box"><h3>🏨 Bestätigte Unterkünfte · 4 Erwachsene</h3><ul class="fl-list" style="margin-top:14px"><li><span class="fl-date">08.–11.11.2026 · 3 Nächte</span><div class="fl-route">THE RISE Osaka Universal Bayside</div><span class="fl-details">1 Apartment · Check-in 15:00–22:00 · Check-out bis 10:00<br>3-2-27 Kasugade Minami, Konohana-ku, Osaka, Japan</span></li><li><span class="fl-date">11.–12.11.2026 · 1 Nacht</span><div class="fl-route">KIRO Hiroshima by THE SHARE HOTELS</div><span class="fl-details">1 Zimmer · Check-in 15:00–23:00 · Check-out bis 10:00<br>3-21 Mikawacho, Naka-ku, Hiroshima, Japan</span></li></ul><p class="note" style="margin-top:12px">Weitere Unterkünfte sind in den Screenshots nicht bestätigt. Bangkok 5, Tokio 5, Hakone/Fuji 2, Kyoto 4, Osaka 3, Hiroshima 1 und Tokio 2 Nächte.</p></div>
+    </div>
+    <!-- TAB 3: INFOS & TIPPS -->
+    <div id="info" class="pane">
+      <div class="box">
+        <h3>💡 Wichtige Reise-Tipps & Vorbereitung</h3>
+        <br>
+        <ul style="padding-left:20px; font-size:.88rem; line-height:1.8;">
+          <li><b>Reisende:</b> Sebastian, Felix, Dustin und Daniel.</li>
+          <li><b>Planungsstand:</b> Aufenthaltsdaten aus der Gruppenübersicht; Aktivitäten ohne Buchungsnachweis sind Vorschläge. Nara/Kobe am 09.11. noch abstimmen.</li>
+          <li><b>Offene Punkte:</b> Bangkok–Tokio-Flug, genaue Unterkunft Hakone/Fuji, weitere Hotels und Transporttickets ergänzen.</li>
+          <li><b>Zeitangaben:</b> Flugzeiten und Check-in-Zeiten sind jeweils Ortszeiten.</li>
+          <li><b>Rückflug:</b> Narita (NRT), nicht Haneda. Anschluss in Shanghai nach Mitternacht; Ankunft München am 15.11.</li>
+          <li><b>Öffentliche Webseite:</b> Buchungsnummern, PIN und E-Mail-Adresse wurden nicht übernommen.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <script>
+    /* ---------- VOLLSTÄNDIGE DATEN (TAG 1 BIS TAG 24 LÜCKENLOS) ---------- */
+    // Daten aus Screenshots; Aktivitäten ohne Nachweis als Vorschlag gekennzeichnet.
+    const routeData = [
+  {
+    "day": 1,
+    "date": "22.10.2026",
+    "phase": 1,
+    "region": "Bangkok",
+    "tagClass": "tag-bangkok",
+    "title": "Abflug München → Sharjah",
+    "desc": "Air Arabia G9241 · MUC Terminal 1 · Abflug 22:45 Uhr; Ankunft SHJ am 23.10. um 06:50 Uhr.",
+    "lat": 48.3538,
+    "lng": 11.7861
+  },
+  {
+    "day": 2,
+    "date": "23.10.2026",
+    "phase": 1,
+    "region": "Bangkok",
+    "tagClass": "tag-bangkok",
+    "title": "Sharjah → Bangkok · Ankunft",
+    "desc": "1 Stunde Umstieg. G9816 · SHJ 07:50 → BKK 17:25 Uhr. Danach Transfer & Check-in; ruhiger erster Abend.",
+    "lat": 13.69,
+    "lng": 100.7501
+  },
+  {
+    "day": 3,
+    "date": "24.10.2026",
+    "phase": 1,
+    "region": "Bangkok",
+    "tagClass": "tag-bangkok",
+    "title": "Bangkok entdecken",
+    "desc": "Vorschlag: Grand Palace & Wat Pho.",
+    "lat": 13.7563,
+    "lng": 100.5018
+  },
+  {
+    "day": 4,
+    "date": "25.10.2026",
+    "phase": 1,
+    "region": "Bangkok",
+    "tagClass": "tag-bangkok",
+    "title": "Märkte & Khlongs",
+    "desc": "Vorschlag: Chatuchak, Kanal-Bootstour & Thai-Massage.",
+    "lat": 13.7563,
+    "lng": 100.5018
+  },
+  {
+    "day": 5,
+    "date": "26.10.2026",
+    "phase": 1,
+    "region": "Bangkok",
+    "tagClass": "tag-bangkok",
+    "title": "Streetfood & Rooftop",
+    "desc": "Vorschlag: Chinatown / Yaowarat und eine Rooftop-Bar.",
+    "lat": 13.7563,
+    "lng": 100.5018
+  },
+  {
+    "day": 6,
+    "date": "27.10.2026",
+    "phase": 1,
+    "region": "Bangkok",
+    "tagClass": "tag-bangkok",
+    "title": "Bangkok · freier Tag",
+    "desc": "Vorschlag: Wat Arun, Shopping oder entspannter Tag. Letzte Nacht in Bangkok.",
+    "lat": 13.7563,
+    "lng": 100.5018
+  },
+  {
+    "day": 7,
+    "date": "28.10.2026",
+    "phase": 2,
+    "region": "Tokio",
+    "tagClass": "tag-tokio",
+    "title": "Bangkok → Tokio",
+    "desc": "Weiterreise laut Aufenthaltsplan. Flugnummer, Zeiten und Flughäfen noch offen. Tokio: 28.10.–02.11., 5 Nächte.",
+    "lat": 35.6895,
+    "lng": 139.6917
+  },
+  {
+    "day": 8,
+    "date": "29.10.2026",
+    "phase": 2,
+    "region": "Tokio",
+    "tagClass": "tag-tokio",
+    "title": "Asakusa, Ueno & Akihabara",
+    "desc": "Vorschlag: Senso-ji, Ueno-Park und Manga-/Elektronikviertel.",
+    "lat": 35.6895,
+    "lng": 139.6917
+  },
+  {
+    "day": 9,
+    "date": "30.10.2026",
+    "phase": 2,
+    "region": "Tokio",
+    "tagClass": "tag-tokio",
+    "title": "Shibuya & Harajuku",
+    "desc": "Vorschlag: Shibuya Crossing, Takeshita Street & Meiji-Schrein.",
+    "lat": 35.6895,
+    "lng": 139.6917
+  },
+  {
+    "day": 10,
+    "date": "31.10.2026",
+    "phase": 2,
+    "region": "Tokio",
+    "tagClass": "tag-tokio",
+    "title": "Kunst & Waterfront",
+    "desc": "Vorschlag: teamLab und Odaiba; Tickets und Zeiten noch abstimmen.",
+    "lat": 35.6895,
+    "lng": 139.6917
+  },
+  {
+    "day": 11,
+    "date": "01.11.2026",
+    "phase": 2,
+    "region": "Tokio",
+    "tagClass": "tag-tokio",
+    "title": "Tokio · freier Tag",
+    "desc": "Vorschlag: Nikko als optionaler Tagesausflug oder weitere Stadtviertel. Letzte Nacht vor Hakone/Fuji.",
+    "lat": 35.6895,
+    "lng": 139.6917
+  },
+  {
+    "day": 12,
+    "date": "02.11.2026",
+    "phase": 2,
+    "region": "Hakone/Fuji",
+    "tagClass": "tag-nagano",
+    "title": "Tokio → Hakone/Fuji",
+    "desc": "Aufenthalt 02.11.–04.11., 2 Nächte. Genauer Ort und Unterkunft noch offen.",
+    "lat": 35.2324,
+    "lng": 139.1069
+  },
+  {
+    "day": 13,
+    "date": "03.11.2026",
+    "phase": 2,
+    "region": "Hakone/Fuji",
+    "tagClass": "tag-nagano",
+    "title": "Hakone/Fuji entdecken",
+    "desc": "Vorschlag bei Übernachtung in Hakone: Ashi-See, Seilbahn und Onsen; Fuji-Sicht wetterabhängig.",
+    "lat": 35.2324,
+    "lng": 139.1069
+  },
+  {
+    "day": 14,
+    "date": "04.11.2026",
+    "phase": 2,
+    "region": "Kyoto",
+    "tagClass": "tag-kyoto",
+    "title": "Hakone/Fuji → Kyoto",
+    "desc": "Aufenthalt 04.11.–08.11., 4 Nächte. Vorschlag: Fushimi Inari am Abend.",
+    "lat": 34.9858,
+    "lng": 135.7588
+  },
+  {
+    "day": 15,
+    "date": "05.11.2026",
+    "phase": 2,
+    "region": "Kyoto",
+    "tagClass": "tag-kyoto",
+    "title": "Kiyomizu-dera & Altstadt",
+    "desc": "Vorschlag: Kiyomizu-dera, Sannenzaka und Gion.",
+    "lat": 34.9949,
+    "lng": 135.785
+  },
+  {
+    "day": 16,
+    "date": "06.11.2026",
+    "phase": 2,
+    "region": "Kyoto",
+    "tagClass": "tag-kyoto",
+    "title": "Arashiyama",
+    "desc": "Vorschlag: Bambuswald und Tenryu-ji.",
+    "lat": 35.0116,
+    "lng": 135.6777
+  },
+  {
+    "day": 17,
+    "date": "07.11.2026",
+    "phase": 2,
+    "region": "Kyoto",
+    "tagClass": "tag-kyoto",
+    "title": "Kyoto · Märkte & Tempel",
+    "desc": "Vorschlag: Nishiki-Markt und Philosophenweg.",
+    "lat": 35.005,
+    "lng": 135.765
+  },
+  {
+    "day": 18,
+    "date": "08.11.2026",
+    "phase": 2,
+    "region": "Osaka",
+    "tagClass": "tag-osaka",
+    "title": "Kyoto → Osaka · Hotel-Check-in",
+    "desc": "THE RISE Osaka Universal Bayside: Check-in 15:00–22:00. Planung: Abeno Harukas, Shinsekai, Den Den Town und abends Dotonbori; je nach Ankunft priorisieren.",
+    "lat": 34.665,
+    "lng": 135.433
+  },
+  {
+    "day": 19,
+    "date": "09.11.2026",
+    "phase": 2,
+    "region": "Osaka",
+    "tagClass": "tag-osaka",
+    "title": "Tagesausflug Nara/Kobe · Ziel offen",
+    "desc": "Screenshot widersprüchlich: Überschrift Nara, Transferzeilen Kobe; Hirschpark & Naramachi passen zu Nara. Ziel gemeinsam klären. Abends Dotonbori.",
+    "lat": 34.6851,
+    "lng": 135.8048
+  },
+  {
+    "day": 20,
+    "date": "10.11.2026",
+    "phase": 2,
+    "region": "Osaka",
+    "tagClass": "tag-osaka",
+    "title": "Kaiyukan & Rikuro’s · Koyasan optional",
+    "desc": "Planung: Kaiyukan Aquarium und Käsekuchen bei Rikuro’s Namba. Koyasan steht ebenfalls im Plan; als separaten Tagesausflug prüfen. Abends Dotonbori.",
+    "lat": 34.6545,
+    "lng": 135.4289
+  },
+  {
+    "day": 21,
+    "date": "11.11.2026",
+    "phase": 2,
+    "region": "Hiroshima",
+    "tagClass": "tag-hiroshima",
+    "title": "Osaka → Hiroshima",
+    "desc": "Osaka Check-out bis 10:00. KIRO Hiroshima Check-in 15:00–23:00. Planung: Friedenspark, Hypozentrum und Burg; Miyajima optional, zeitlich prüfen.",
+    "lat": 34.3896,
+    "lng": 132.4629
+  },
+  {
+    "day": 22,
+    "date": "12.11.2026",
+    "phase": 2,
+    "region": "Tokio",
+    "tagClass": "tag-tokio",
+    "title": "Hiroshima → Tokio",
+    "desc": "KIRO Check-out bis 10:00. Weiterreise nach Tokio laut Aufenthaltsübersicht, 12.11.–14.11., 2 Nächte. Der Tabellenhinweis „Abreise nach Flug“ enthält keine Flugdetails.",
+    "lat": 35.6812,
+    "lng": 139.7671
+  },
+  {
+    "day": 23,
+    "date": "13.11.2026",
+    "phase": 2,
+    "region": "Tokio",
+    "tagClass": "tag-tokio",
+    "title": "Tokio · letzter voller Tag",
+    "desc": "Vorschlag: Ginza, Souvenirs und gemeinsames Abschiedsessen.",
+    "lat": 35.6721,
+    "lng": 139.7639
+  },
+  {
+    "day": 24,
+    "date": "14.11.2026",
+    "phase": 2,
+    "region": "Tokio",
+    "tagClass": "tag-tokio",
+    "title": "Tokio Narita → Shanghai",
+    "desc": "Air China CA920 · NRT 19:30 → PVG 22:15 Uhr. Anschluss am nächsten Tag, 4 Std. 15 Min. Umstieg. Screenshot bestätigt die Buchung für Sebastian.",
+    "lat": 35.772,
+    "lng": 140.3929
+  },
+  {
+    "day": 25,
+    "date": "15.11.2026",
+    "phase": 2,
+    "region": "Rückreise",
+    "tagClass": "tag-tokio",
+    "title": "Shanghai → München",
+    "desc": "Air China CA827 · PVG 02:30 → MUC 07:45 Uhr. Ankunft in Deutschland. Alle Uhrzeiten lokal.",
+    "lat": 48.3538,
+    "lng": 11.7861
+  }
+];
+
+    let currentPhase = 0; // 0 = alle, 1 = BKK, 2 = Japan
+    let activeRegionFilter = 'all';
+    let map, markersGroup, routesGroup;
+
+    /* ---------- COUNTDOWN TIMER ---------- */
+    function initCountdown() {
+      const target = new Date("2026-10-22T22:45:00+02:00").getTime();
+      const el = document.getElementById("countdown");
+
+      function update() {
+        const now = new Date().getTime();
+        const diff = target - now;
+
+        if (diff < 0) {
+          el.innerText = "🎉 Die Reise läuft gerade oder ist abgeschlossen!";
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        el.innerText = `⏳ noch ${days} Tage und ${hours} Std. bis Abflug`;
+      }
+      update();
+      setInterval(update, 60000);
+    }
+
+    /* ---------- TAB SWITCHING ---------- */
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+      document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+      btn.classList.add('on');
+      document.getElementById(tabId).classList.add('on');
+
+      if(tabId === 'route' && map) {
+        setTimeout(() => { if(map) map.invalidateSize(); }, 200);
+      }
+    }
+
+    /* ---------- FILTER & SEARCH ---------- */
+    function filterPhase(phase) {
+      if (currentPhase === phase) {
+        currentPhase = 0;
+        document.getElementById('btn-p1').classList.remove('on');
+        document.getElementById('btn-p2').classList.remove('on');
+      } else {
+        currentPhase = phase;
+        document.getElementById('btn-p1').classList.toggle('on', phase === 1);
+        document.getElementById('btn-p2').classList.toggle('on', phase === 2);
+      }
+      filterRoute();
+    }
+
+    function setFilter(region, btn) {
+      document.querySelectorAll('.controls .f').forEach(f => f.classList.remove('on'));
+      btn.classList.add('on');
+      activeRegionFilter = region;
+      filterRoute();
+    }
+
+    function filterRoute() {
+      const q = document.getElementById('q').value.toLowerCase();
+
+      const filtered = routeData.filter(item => {
+        const matchPhase = (currentPhase === 0 || item.phase === currentPhase);
+        const matchRegion = (activeRegionFilter === 'all' || item.region === activeRegionFilter);
+        const matchQuery = item.title.toLowerCase().includes(q) || 
+                           item.desc.toLowerCase().includes(q) || 
+                           item.region.toLowerCase().includes(q);
+        return matchPhase && matchRegion && matchQuery;
+      });
+
+      renderTableAndCards(filtered);
+      renderMapMarkers(filtered);
+    }
+
+    /* ---------- RENDER TABLE & MOBILE CARDS ---------- */
+    function renderTableAndCards(data) {
+      const tbody = document.getElementById('route-table-body');
+      const cards = document.getElementById('route-cards');
+
+      tbody.innerHTML = '';
+      cards.innerHTML = '';
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--mute)">Keine Ergebnisse für diesen Filter gefunden.</td></tr>';
+        cards.innerHTML = '<div style="text-align:center; padding:20px; color:var(--mute)">Keine Ergebnisse gefunden.</div>';
+        return;
+      }
+
+      data.forEach(item => {
+        // Table row
+        const tr = document.createElement('tr');
+        tr.className = `row ${item.phase === 2 ? 'two-c' : ''}`;
+        tr.onclick = () => focusMap(item.lat, item.lng);
+
+        tr.innerHTML = `
+          <td><span class="dn">Tag ${item.day}</span></td>
+          <td><div class="dt">${item.date}</div></td>
+          <td><span class="rg ${item.tagClass}">${item.region}</span></td>
+          <td class="tt">${item.title}</td>
+          <td>${item.desc}</td>
+        `;
+        tbody.appendChild(tr);
+
+        // Mobile Card
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => focusMap(item.lat, item.lng);
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span class="dn" style="background:${item.phase === 2 ? 'var(--p2)' : 'var(--p1)'}">Tag ${item.day}</span>
+            <span class="dt">${item.date}</span>
+          </div>
+          <div class="tt" style="margin-top:2px;">${item.title}</div>
+          <div style="margin: 4px 0;"><span class="rg ${item.tagClass}">${item.region}</span></div>
+          <div style="font-size:0.78rem; color:var(--text); line-height:1.4;">${item.desc}</div>
+        `;
+        cards.appendChild(card);
+      });
+    }
+
+    /* ---------- LEAFLET MAP & FLIGHT POLYLINES ---------- */
+    function initMap() {
+      // Initialize map centered between Europe, Southeast Asia, and Japan
+      if (typeof L === 'undefined') {
+        document.getElementById('map').innerHTML = '<p style="padding:20px">Karte derzeit nicht verfügbar. Bitte Internetverbindung prüfen. Der Reiseplan bleibt nutzbar.</p>';
+        return;
+      }
+      map = L.map('map').setView([25.0, 100.0], 3);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      markersGroup = L.featureGroup().addTo(map);
+      routesGroup = L.featureGroup().addTo(map);
+
+      // Add Map Legend
+      const legend = L.control({ position: 'bottomright' });
+      legend.onAdd = function() {
+        const div = L.DomUtil.create('div', 'map-legend');
+        div.innerHTML = `
+          <div class="map-legend-item">
+            <span class="line-indicator line-flight"></span>
+            <b>Flüge über Sharjah / Shanghai</b>
+          </div>
+          <div class="map-legend-item">
+            <span class="line-indicator line-shinkansen"></span>
+            <b>Japan · schematische Route</b>
+          </div>
+        `;
+        return div;
+      };
+      legend.addTo(map);
+
+      drawRoutes();
+      renderMapMarkers(routeData);
+    }
+
+    function drawRoutes() {
+      routesGroup.clearLayers();
+
+      /* 1. GESTRICHELTE FLUGSTRECKEN (Dashed Flight Polylines) */
+      const flightMUC_BKK = [[48.3538,11.7861],[25.3286,55.5172],[13.6900,100.7501]];
+      // Bangkok–Tokio: Zielflughafen noch offen, Stadtzentrum als Platzhalter.
+      const flightBKK_TYO = [[13.6900,100.7501],[35.6895,139.6917]];
+      const flightTYO_MUC = [[35.772,140.3929],[31.1443,121.8083],[48.3538,11.7861]];
+      const flightStyle = {
+        color: '#dc2626',      // Rot für Flüge
+        weight: 3,
+        opacity: 0.85,
+        dashArray: '8, 8'       // Gestrichelte Linie
+      };
+
+      L.polyline(flightMUC_BKK, flightStyle).addTo(routesGroup).bindTooltip("✈️ Flug 1: München ➔ Sharjah ➔ Bangkok", {sticky: true});
+      L.polyline(flightBKK_TYO, flightStyle).addTo(routesGroup).bindTooltip("✈️ Flug 2: Bangkok ➔ Tokio (Flugdetails offen)", {sticky: true});
+      L.polyline(flightTYO_MUC, flightStyle).addTo(routesGroup).bindTooltip("✈️ Flug 3: Narita ➔ Shanghai ➔ München", {sticky: true});
+
+      /* 2. DURCHGEHENDE LANDROUTEN IN JAPAN (Shinkansen / Rail Route) */
+      const japanLandRoute = [[35.6895,139.6917],[35.2324,139.1069],[34.9858,135.7588],[34.6687,135.5013],[34.3896,132.4629],[35.6812,139.7671]];
+
+      L.polyline(japanLandRoute, {
+        color: '#7c3aed',     // Lila für Japan Route
+        weight: 3.5,
+        opacity: 0.75
+      }).addTo(routesGroup).bindTooltip("🚆 Japan: schematische Verbindung, Bahn / Bus", {sticky: true});
+    }
+
+    function renderMapMarkers(data) {
+      if(!map) return;
+      markersGroup.clearLayers();
+
+      const bounds = [];
+
+      data.forEach(item => {
+        const iconClass = item.phase === 2 ? 'nm p2' : 'nm p1';
+        const customIcon = L.divIcon({
+          className: `${iconClass}`,
+          html: `${item.day}`,
+          iconSize: [24, 24]
+        });
+
+        const marker = L.marker([item.lat, item.lng], { icon: customIcon })
+          .bindPopup(`<b>Tag ${item.day}: ${item.title}</b><br><small>${item.date}</small><br>${item.desc}`);
+        
+        markersGroup.addLayer(marker);
+        bounds.push([item.lat, item.lng]);
+      });
+
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+    }
+
+    function focusMap(lat, lng) {
+      if(!map) return;
+      map.setView([lat, lng], 10, { animate: true });
+      document.getElementById('map-box').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleMapFull() {
+      const box = document.getElementById('map-box');
+      box.classList.toggle('full');
+      setTimeout(() => { if(map) map.invalidateSize(); }, 200);
+    }
+
+    /* ---------- INIT APP ON LOAD ---------- */
+    window.addEventListener('DOMContentLoaded', () => {
+      initCountdown();
+      renderTableAndCards(routeData);
+      initMap();
+    });
+  </script>
+</body>
+</html>
