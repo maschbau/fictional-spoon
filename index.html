@@ -27,7 +27,7 @@
       --danger: #dc2626;
       --radius: 12px;
       --shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-      --tab-count: 3;
+      --tab-count: 4;
     }
 
     /* ---------- 2. Reset & Grundlayout ---------- */
@@ -194,6 +194,18 @@
       #map { height: 335px; }
       .ph { font-size: .69rem; padding: 6px 4px; }
     }
+
+    .pack-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .pack-item {display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #e2e8f0;font-size:.85rem;cursor:pointer}
+    .pack-item input {width:20px;height:20px;flex:0 0 20px;accent-color:var(--p1);margin-top:2px}
+    .pack-item:has(input:checked) span {text-decoration:line-through;color:var(--mute)}
+    .pack-tools {display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:14px 0}
+    .pack-tools select,.pack-tools button {padding:8px;border:1px solid var(--line);border-radius:8px;background:white}
+    @media(max-width:860px){.pack-grid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}}
+    @media print {body{padding:0} header,.tabs,.pane,#packing .pack-tools{display:none!important}#packing{display:block!important}.pack-grid{display:block}.pack-grid .box{break-inside:avoid;box-shadow:none}.pack-item{padding:4px 0}}
+    .flight-status-link {display:inline-block;background:var(--p1);color:#fff;text-decoration:none;font-weight:700;font-size:.8rem;border-radius:8px;padding:9px 12px;margin:10px 0 4px}
+    .flight-status-link:hover {background:#166534}
+    .flight-status-help {display:block;font-size:.75rem;color:var(--mute);margin-top:4px}
   </style>
 </head>
 <body>
@@ -220,6 +232,7 @@
       <button class="tab on" onclick="switchTab('route', this)">📍 Reiseplan & Karte</button>
       <button class="tab" onclick="switchTab('flights', this)">✈️ Flüge & Logistik</button>
       <button class="tab" onclick="switchTab('info', this)">ℹ️ Infos & Tipps</button>
+      <button class="tab" onclick="switchTab('packing', this)">🧳 Packliste</button>
     </nav>
 
     <!-- TAB 1: REISEPLAN & KARTE -->
@@ -287,9 +300,10 @@
     <div id="flights" class="pane">
       <div class="box">
         <h3>✈️ Flug- & Reiselogistik</h3>
-        <p class="note" style="margin-bottom:16px">Alle Zeiten sind Ortszeiten. Rückflug-Buchung im Screenshot: Sebastian; Buchungen der übrigen Reisenden bitte abgleichen.</p><ul class="fl-list"><li><span class="fl-date">22.–23.10.2026</span><div class="fl-route">München (MUC) → Sharjah (SHJ)</div><span class="fl-details">Air Arabia G9241 · 22.10. 22:45 → 23.10. 06:50 · Terminal 1 · Economy · 6 Std. 05 Min.</span></li><li><span class="fl-date">23.10.2026</span><div class="fl-route">Sharjah (SHJ) → Bangkok (BKK)</div><span class="fl-details">Air Arabia G9816 · 07:50 → 17:25 · Economy · 6 Std. 35 Min. · Umstieg in SHJ: 1 Stunde</span></li><li><span class="fl-date">28.10.2026</span><div class="fl-route">Bangkok → Tokio · Flugdetails offen</div><span class="fl-details">Datum laut Aufenthaltsübersicht. Flugnummer, Abflugzeit und Flughäfen sind in den Screenshots nicht enthalten.</span></li><li><span class="fl-date">14.11.2026</span><div class="fl-route">Tokio Narita (NRT) → Shanghai (PVG)</div><span class="fl-details">Air China CA920 · 19:30 → 22:15 · Umstieg: 4 Std. 15 Min. über Mitternacht</span></li><li><span class="fl-date">15.11.2026</span><div class="fl-route">Shanghai (PVG) → München (MUC)</div><span class="fl-details">Air China CA827 · 02:30 → 07:45 · Im Screenshot steht ein Hinweis auf Flugänderungen; aktuelle Buchung vor Abflug prüfen.</span></li></ul>
+        <p class="note" style="margin-bottom:16px">Alle Zeiten sind Ortszeiten. Rückflug-Buchung im Screenshot: Sebastian; Buchungen der übrigen Reisenden bitte abgleichen.</p><ul class="fl-list"><li><span class="fl-date">22.–23.10.2026</span><div class="fl-route">München (MUC) → Sharjah (SHJ)</div><span class="fl-details">Air Arabia G9241 · 22.10. 22:45 → 23.10. 06:50 · Terminal 1 · Economy · 6 Std. 05 Min.</span><a class="flight-status-link" href="https://www.airarabia.com/en/manage/flight-status/check-flight-status" target="_blank" rel="noopener noreferrer" aria-label="Flugstatus für G9241 am 22.10.2026 bei Air Arabia ansehen">✈️ Aktuellen Flugstatus ansehen ↗</a><span class="flight-status-help">Auf der Airline-Seite Flugnummer <b>G9241</b> und Abflugdatum <b>22.10.2026</b> auswählen. Öffnet in einem neuen Tab.</span></li><li><span class="fl-date">23.10.2026</span><div class="fl-route">Sharjah (SHJ) → Bangkok (BKK)</div><span class="fl-details">Air Arabia G9816 · 07:50 → 17:25 · Economy · 6 Std. 35 Min. · Umstieg in SHJ: 1 Stunde</span><a class="flight-status-link" href="https://www.airarabia.com/en/manage/flight-status/check-flight-status" target="_blank" rel="noopener noreferrer" aria-label="Flugstatus für G9816 am 23.10.2026 bei Air Arabia ansehen">✈️ Aktuellen Flugstatus ansehen ↗</a><span class="flight-status-help">Auf der Airline-Seite Flugnummer <b>G9816</b> und Abflugdatum <b>23.10.2026</b> auswählen. Öffnet in einem neuen Tab.</span></li><li><span class="fl-date">28.10.2026</span><div class="fl-route">Bangkok → Tokio · Flugdetails offen</div><span class="fl-details">Datum laut Aufenthaltsübersicht. Flugnummer, Abflugzeit und Flughäfen sind in den Screenshots nicht enthalten.</span><span class="flight-status-help">Statuslink folgt, sobald Airline und Flugnummer feststehen.</span></li><li><span class="fl-date">14.11.2026</span><div class="fl-route">Tokio Narita (NRT) → Shanghai (PVG)</div><span class="fl-details">Air China CA920 · 19:30 → 22:15 · Umstieg: 4 Std. 15 Min. über Mitternacht</span><a class="flight-status-link" href="https://www.airchina.com.cn/en-US/flight/query-services/flight-dynamics" target="_blank" rel="noopener noreferrer" aria-label="Flugstatus für CA920 am 14.11.2026 bei Air China ansehen">✈️ Aktuellen Flugstatus ansehen ↗</a><span class="flight-status-help">Auf der Airline-Seite Flugnummer <b>CA920</b> und Abflugdatum <b>14.11.2026</b> auswählen. Öffnet in einem neuen Tab.</span></li><li><span class="fl-date">15.11.2026</span><div class="fl-route">Shanghai (PVG) → München (MUC)</div><span class="fl-details">Air China CA827 · 02:30 → 07:45 · Im Screenshot steht ein Hinweis auf Flugänderungen; aktuelle Buchung vor Abflug prüfen.</span><a class="flight-status-link" href="https://www.airchina.com.cn/en-US/flight/query-services/flight-dynamics" target="_blank" rel="noopener noreferrer" aria-label="Flugstatus für CA827 am 15.11.2026 bei Air China ansehen">✈️ Aktuellen Flugstatus ansehen ↗</a><span class="flight-status-help">Auf der Airline-Seite Flugnummer <b>CA827</b> und Abflugdatum <b>15.11.2026</b> auswählen. Öffnet in einem neuen Tab.</span></li></ul>
       </div>
 
+<div class="box"><h3>📡 Aktuellen Flugstatus prüfen</h3><p style="margin-top:8px;font-size:.85rem">Die Buttons öffnen die offiziellen Statusseiten der Airlines. Dort findest du die verfügbaren aktuellen Abflug- und Ankunftszeiten sowie Hinweise zu Verspätungen oder Ausfällen. Die Zeiten in dieser Reiseübersicht bleiben eure gebuchten Planzeiten; sie werden nicht automatisch aktualisiert. Es gibt hier keine automatischen Änderungsbenachrichtigungen.</p><p class="note" style="margin-top:8px">Live-Status ist häufig erst kurz vor dem Flug verfügbar. Air Arabia bietet derzeit gestern, heute und morgen zur Auswahl. Buchungsänderungen zusätzlich in der Airline-App und euren E-Mails prüfen.</p></div>
       <div class="box">
         <h3>🚆 Transport vor Ort (Japan Rail & Öffis)</h3>
         <p style="font-size:0.85rem; margin-top:8px; line-height:1.6;">
@@ -314,6 +328,19 @@
         </ul>
       </div>
     </div>
+
+
+    <div id="packing" class="pane">
+      <div class="box"><h3>🧳 Packliste · Bangkok & Japan · 22.10.–15.11.2026</h3>
+      <p style="margin-top:10px">Für jeden Reisenden einzeln. Kleidung für etwa eine Woche einpacken und unterwegs waschen – so bleibt das Gepäck bei den vielen Ortswechseln handlich.</p>
+      <ul style="padding-left:20px;margin-top:12px;font-size:.85rem;line-height:1.8">
+      <li><b>Bangkok, 23.–28.10.:</b> Tropisch warm und feucht; Oktober ist der Übergang aus der Regenzeit. Luftige Kleidung, Sonnenschutz und Regenschutz einpacken. Für Tempel Schultern und Knie bedecken.</li>
+      <li><b>Tokio, Kyoto, Osaka & Hiroshima:</b> Herbstwetter mit kühleren Abenden: T-Shirt + Langarmshirt/Fleece + Jacke flexibel kombinieren.</li>
+      <li><b>Hakone/Fuji, 02.–04.11.:</b> In höheren Lagen deutlich kühler, windiger und wechselhaft. Warme Zwischenschicht, isolierende Jacke, Regenschutz und feste Schuhe mitnehmen. Die Liste ist für Ausflüge gedacht; eine Fuji-Gipfeltour braucht eine eigene Planung.</li>
+      </ul><p class="note" style="margin-top:12px">Saisonale Orientierung, keine konkrete Wettervorhersage. Vor Abflug und vor Ausflügen Vorhersage prüfen. Quellen: <a href="https://www.tourismthailand.org/Articles/thailand-october" target="_blank" rel="noopener">Tourism Authority of Thailand</a>, <a href="https://www.japan.travel/en/guide/autumn-guide/" target="_blank" rel="noopener">JNTO Herbst</a>, <a href="https://hakone-japan.com/discover/national-park/basic-information/what-to-wear/" target="_blank" rel="noopener">Hakone: Kleidung</a>.</p>
+      <div class="pack-tools"><label for="pack-person">Reisender:</label><select id="pack-person"><option>Sebastian</option><option>Felix</option><option>Dustin</option><option>Daniel</option></select><strong id="pack-progress" aria-live="polite"></strong><button id="pack-reset" type="button">Häkchen zurücksetzen</button><button type="button" onclick="window.print()">Drucken / PDF</button></div>
+      <p class="note" id="pack-save-note">Häkchen werden nur auf diesem Gerät in diesem Browser gespeichert, nicht zwischen euch synchronisiert.</p></div>
+      <div class="pack-grid"><section class="box"><h3>👕 Kleidung · mit Wäsche alle 7–10 Tage</h3><label class="pack-item"><input type="checkbox" data-pack="0"><span>7–8 T-Shirts / leichte Oberteile</span></label><label class="pack-item"><input type="checkbox" data-pack="1"><span>2 Langarmshirts</span></label><label class="pack-item"><input type="checkbox" data-pack="2"><span>1 Fleece oder warmer Pullover</span></label><label class="pack-item"><input type="checkbox" data-pack="3"><span>1 leichte isolierende Jacke für Japan & Hakone</span></label><label class="pack-item"><input type="checkbox" data-pack="4"><span>1 leichte wasserdichte Regenjacke</span></label><label class="pack-item"><input type="checkbox" data-pack="5"><span>2 lange Hosen, davon 1 bequem für Ausflüge</span></label><label class="pack-item"><input type="checkbox" data-pack="6"><span>2 Shorts für Bangkok</span></label><label class="pack-item"><input type="checkbox" data-pack="7"><span>8–10 Unterhosen</span></label><label class="pack-item"><input type="checkbox" data-pack="8"><span>8–10 Paar Socken, davon 2 wärmere / Wandersocken</span></label><label class="pack-item"><input type="checkbox" data-pack="9"><span>1 Schlafanzug / Schlafshirt</span></label><label class="pack-item"><input type="checkbox" data-pack="10"><span>1 Badehose für Pool, falls vorhanden</span></label><label class="pack-item"><input type="checkbox" data-pack="11"><span>1 Hemd / ordentliches Oberteil für Rooftop & Abendessen</span></label><label class="pack-item"><input type="checkbox" data-pack="12"><span>1 dünner Schal / Buff und leichte Mütze für kühle Höhenlagen</span></label></section><section class="box"><h3>👟 Schuhe & Tagesrucksack</h3><label class="pack-item"><input type="checkbox" data-pack="13"><span>1 Paar eingelaufene, bequeme Sneaker mit gutem Profil</span></label><label class="pack-item"><input type="checkbox" data-pack="14"><span>Optional: leichte Wanderschuhe für längere Hakone/Fuji-Wanderungen</span></label><label class="pack-item"><input type="checkbox" data-pack="15"><span>1 Paar Sandalen / Flipflops</span></label><label class="pack-item"><input type="checkbox" data-pack="16"><span>Kleiner Tagesrucksack (ca. 15–25 Liter)</span></label><label class="pack-item"><input type="checkbox" data-pack="17"><span>Kompakter Regenschirm</span></label><label class="pack-item"><input type="checkbox" data-pack="18"><span>Regenhülle oder wasserdichter Beutel für Rucksack / Technik</span></label><label class="pack-item"><input type="checkbox" data-pack="19"><span>Sonnenbrille & Kappe</span></label><label class="pack-item"><input type="checkbox" data-pack="20"><span>Wiederbefüllbare Trinkflasche</span></label><label class="pack-item"><input type="checkbox" data-pack="21"><span>Kleines Handtuch / Taschentücher</span></label></section><section class="box"><h3>🧴 Pflege & persönliche Reiseapotheke</h3><label class="pack-item"><input type="checkbox" data-pack="22"><span>Zahnbürste, Zahnpasta, Deo & Rasierer</span></label><label class="pack-item"><input type="checkbox" data-pack="23"><span>Sonnencreme SPF 30–50</span></label><label class="pack-item"><input type="checkbox" data-pack="24"><span>Insektenschutz für Bangkok</span></label><label class="pack-item"><input type="checkbox" data-pack="25"><span>Persönliche Medikamente in ausreichender Menge</span></label><label class="pack-item"><input type="checkbox" data-pack="26"><span>Bei Bedarf: Verordnung / Medikamentenbescheinigung; Einfuhrregeln prüfen</span></label><label class="pack-item"><input type="checkbox" data-pack="27"><span>Blasenpflaster, normale Pflaster & Desinfektion</span></label><label class="pack-item"><input type="checkbox" data-pack="28"><span>Persönliche Mittel gegen Schmerzen / Magenbeschwerden nach Verträglichkeit</span></label><label class="pack-item"><input type="checkbox" data-pack="29"><span>Handdesinfektion</span></label><label class="pack-item"><input type="checkbox" data-pack="30"><span>Kleine Waschmittelportion / Waschmittelblätter</span></label><label class="pack-item"><input type="checkbox" data-pack="31"><span>Beutel für Schmutzwäsche</span></label></section><section class="box"><h3>📱 Technik</h3><label class="pack-item"><input type="checkbox" data-pack="32"><span>Smartphone & Ladekabel</span></label><label class="pack-item"><input type="checkbox" data-pack="33"><span>Ladegerät mit mehreren USB-Anschlüssen</span></label><label class="pack-item"><input type="checkbox" data-pack="34"><span>Reiseadapter für Japan (Typ A; ggf. Universaladapter für Thailand)</span></label><label class="pack-item"><input type="checkbox" data-pack="35"><span>Auf Geräten prüfen: Eingang 100–240 V (Japan: 100 V)</span></label><label class="pack-item"><input type="checkbox" data-pack="36"><span>Powerbank im Handgepäck; Airline-Vorgaben prüfen</span></label><label class="pack-item"><input type="checkbox" data-pack="37"><span>Kopfhörer</span></label><label class="pack-item"><input type="checkbox" data-pack="38"><span>eSIM / Roaming und Offline-Karten vorbereiten</span></label><label class="pack-item"><input type="checkbox" data-pack="39"><span>Optional: Kamera, Speicherkarte & Ladekabel</span></label></section><section class="box"><h3>🛂 Dokumente & Organisation</h3><label class="pack-item"><input type="checkbox" data-pack="40"><span>Reisepass; Gültigkeit und aktuelle Einreiseanforderungen prüfen</span></label><label class="pack-item"><input type="checkbox" data-pack="41"><span>Flugtickets / Hotelbestätigungen offline speichern</span></label><label class="pack-item"><input type="checkbox" data-pack="42"><span>Auslandskrankenversicherung & Notfallkontakte</span></label><label class="pack-item"><input type="checkbox" data-pack="43"><span>Zwei Zahlungsmittel getrennt verstauen</span></label><label class="pack-item"><input type="checkbox" data-pack="44"><span>Etwas Bargeld / Zugang zu Geldautomaten</span></label><label class="pack-item"><input type="checkbox" data-pack="45"><span>Aktuelle Einreiseformulare für Thailand & Japan vor Abflug prüfen</span></label><label class="pack-item"><input type="checkbox" data-pack="46"><span>Medikamenten-Einfuhrregeln für beide Länder prüfen</span></label><label class="pack-item"><input type="checkbox" data-pack="47"><span>Gepäckgewicht und Maße für ALLE Flugabschnitte prüfen</span></label><label class="pack-item"><input type="checkbox" data-pack="48"><span>Vorhersage 5–7 Tage vor Abflug und vor Hakone/Fuji nochmals prüfen</span></label></section><section class="box"><h3>✈️ Handgepäck & lange Flüge</h3><label class="pack-item"><input type="checkbox" data-pack="49"><span>Reisepass, Geld, Smartphone & Wertsachen</span></label><label class="pack-item"><input type="checkbox" data-pack="50"><span>Persönliche Medikamente & notwendige Nachweise</span></label><label class="pack-item"><input type="checkbox" data-pack="51"><span>1 Wechselshirt, Unterwäsche und Socken</span></label><label class="pack-item"><input type="checkbox" data-pack="52"><span>Warmer Pullover für Flugzeug / Klimaanlage</span></label><label class="pack-item"><input type="checkbox" data-pack="53"><span>Schlafmaske, Ohrstöpsel & optional Nackenkissen</span></label><label class="pack-item"><input type="checkbox" data-pack="54"><span>Flüssigkeiten entsprechend Flughafenregeln verpacken</span></label><label class="pack-item"><input type="checkbox" data-pack="55"><span>Ladekabel & Powerbank griffbereit</span></label><label class="pack-item"><input type="checkbox" data-pack="56"><span>Kleine Snacks & leere Trinkflasche für die Sicherheitskontrolle</span></label></section></div></div>
 
   </div>
 
@@ -827,8 +854,28 @@
       setTimeout(() => { if(map) map.invalidateSize(); }, 200);
     }
 
+
+    function initPacking() {
+      const person = document.getElementById('pack-person');
+      const boxes = [...document.querySelectorAll('[data-pack]')];
+      let state = {};
+      try { state = JSON.parse(localStorage.getItem('japan2026-packing-v1') || '{}'); if(!state || typeof state !== 'object' || Array.isArray(state)) state = {}; } catch(e) {}
+      function progress() {document.getElementById('pack-progress').textContent = boxes.filter(b=>b.checked).length + ' / ' + boxes.length + ' erledigt';}
+      function load() {const saved = state[person.value] || {};boxes.forEach(b=>b.checked = saved[b.dataset.pack] === true);progress();}
+      function save() {
+        state[person.value] = Object.fromEntries(boxes.map(b=>[b.dataset.pack,b.checked]));
+        try {localStorage.setItem('japan2026-packing-v1',JSON.stringify(state));} catch(e) {document.getElementById('pack-save-note').textContent='Speichern ist in diesem Browser gesperrt. Häkchen bleiben nur bis zum Schließen / Neuladen erhalten.';}
+        progress();
+      }
+      person.addEventListener('change',load);
+      boxes.forEach(b=>b.addEventListener('change',save));
+      document.getElementById('pack-reset').addEventListener('click',()=>{if(confirm('Alle Häkchen für '+person.value+' zurücksetzen?')){boxes.forEach(b=>b.checked=false);save();}});
+      load();
+    }
+
     /* ---------- INIT APP ON LOAD ---------- */
     window.addEventListener('DOMContentLoaded', () => {
+      initPacking();
       initCountdown();
       renderTableAndCards(routeData);
       initMap();
